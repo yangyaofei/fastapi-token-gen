@@ -15,7 +15,7 @@ class AccessField(BaseModel):
         return (str(self.token_expire) + method).lower()
 
 
-class GrandToken(AccessField):
+class GrantToken(AccessField):
     jwt_algorithm: str
     varify_token: str  #: 用于验证, 用户将GrandToken中除 encrypy_key 之外内容发送给服务端,返回该key是否有效
     user_id: str
@@ -34,5 +34,5 @@ class HashAuth(Auth):
 
 
 class EncryptAuth(Auth, AccessField):
-    # token: str  #: encrypt(jwt(GrandToken), GrandToken.encrypt_key, sha256(Auth.timestamp)[:12])
+    # token: str  #: encrypt(jwt(GrantToken), GrantToken.encrypt_key, sha256(Auth.timestamp)[:12])
     pass
