@@ -3,13 +3,13 @@ from cryptography.hazmat.primitives.hashes import SHA256, Hash
 import os
 
 
-def encrypt(payload: bytes, key, none) -> bytes:
+def encrypt(payload: bytes, key: bytes, none: bytes) -> bytes:
     chacha = ChaCha20Poly1305(key=key)
     ct = chacha.encrypt(none, payload, None)
     return ct
 
 
-def decrypt(payload: bytes, key, none) -> bytes:
+def decrypt(payload: bytes, key: bytes, none: bytes) -> bytes:
     chacha = ChaCha20Poly1305(key=key)
     ct = chacha.decrypt(none, payload, None)
     return ct

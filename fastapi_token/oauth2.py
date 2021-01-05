@@ -201,37 +201,6 @@ class EncryptToken(TokenBase):
             (secret_key + salt if salt is not None else "").encode("utf-8")
         )
 
-    @staticmethod
-    def encrypt(payload: str, timestamp: int, key: str):
-        """
-        加密方式: payload -> encode("utf-8") -> encrypt -> base64
-
-        :param key:
-        :param timestamp:
-        :param payload:
-        :return:
-        """
-        key = base64.b64decode(key)
-        none = gen_none_from_timestamp(timestamp)
-        data = encrypt(payload.encode("utf-8"), key=key, none=none)
-        return base64.b64encode(data)
-
-    @staticmethod
-    def decrypt(payload: str, timestamp: int, key: str):
-        """
-        解密方式: payload -> decode-base64 -> decrypt -> decode("utf-8")
-        :param timestamp:
-        :param key:
-        :param payload:
-        :return:
-        """
-
-        key = base64.b64decode(key)
-        none = gen_none_from_timestamp(timestamp)
-        data = base64.b64decode(payload)
-        data = decrypt(data, key, none)
-        return data.decode("utf-8")
-
     def auth(self, authorization: str) -> EncryptAuth:
         payload = EncryptAuth(**jwt.decode(authorization, verify=False))
         access_field = AccessField(**payload.dict())
