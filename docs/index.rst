@@ -8,9 +8,9 @@ Welcome to fastapi-token-gen's documentation!
 
 `fastapi-token-gen` is a module for `fastapi` to generate token follow `oauth2`
 
-`fastapi-token-gen` 是一个用于`fastapi`的认证库,符合`oauth2`认证.
+`fastapi-token-gen` 是一个用于 `fastapi` 的认证库,符合 `oauth2` 认证.
 
-在HTTP下, 简单的`jwt` + `oauth2`的认证方式是不安全的, 会被进行重放攻击. 本module使用哈希
+在HTTP下, 简单的 `jwt` + `oauth2` 的认证方式是不安全的, 会被进行重放攻击. 本module使用哈希
 和加密算法, 分发给客户端一个key, 客户端使用该key根据约定方式进行编码获得用于请求的 `token`,
 防止重放攻击的方式利用的是时间戳,并对时间戳进行哈希或者加签名的方式.
 
