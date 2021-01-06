@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordBearer
 import jwt
 import base64
 import hashlib
-from fastapi_token.schemas import EncryptAuth, GrandToken, Auth, HashAuth, AccessField
+from fastapi_token.schemas import EncryptAuth, GrantToken, Auth, HashAuth, AccessField
 from fastapi_token.encrypt import gen_key, gen_nonce_from_timestamp, encrypt, decrypt
 import time
 import typing
@@ -266,7 +266,7 @@ class EncryptToken(TokenBase):
         key = self.gen_key(secret_key=self.secret_key_grand, salt=access_field.gen_salt())
         nonce = gen_nonce_from_timestamp(access_field.token_expire)
 
-        grand_token = GrandToken(
+        grand_token = GrantToken(
             jwt_algorithm=self.algorithm_jwt,
             user_id=user_id,
             varify_token=self.gen_key(secret_key=self.secret_key_grand, salt=key.hex()).hex(),
@@ -283,7 +283,7 @@ class EncryptToken(TokenBase):
 
         :return: 认证内容以及jwt加密后内容
         """
-        grand_token = GrandToken(**jwt.decode(user_token, verify=False))
+        grand_token = GrantToken(**jwt.decode(user_token, verify=False))
         access_field = AccessField(**grand_token.dict())
         timestamp = config.get("timestamp", int(time.time()))
         encrypt_auth = EncryptAuth(user_id=user_id, timestamp=timestamp, **access_field.dict())

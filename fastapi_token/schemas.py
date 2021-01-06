@@ -16,7 +16,7 @@ class AccessField(BaseModel):
         return (str(self.token_expire) + method).lower()
 
 
-class GrandToken(AccessField):
+class GrantToken(AccessField):
     """
     user_token 生成所用的字段
     """
@@ -44,8 +44,8 @@ class HashAuth(Auth):
 
 
 class EncryptAuth(Auth, AccessField):
+    # token: str  #: encrypt(jwt(GrantToken), GrantToken.encrypt_key, sha256(Auth.timestamp)[:12])
     """
     :class:`fastapi_gen.oauth2.EncryptToken` 所用认证字段
     """
     pass
-
