@@ -21,7 +21,7 @@ class GrantToken(AccessField):
     user_token 生成所用的字段
     """
     jwt_algorithm: str  #: 客户端jwt编码所用的算法
-    varify_token: str  #: 用于验证, 用户将GrandToken中除 encrypy_key 之外内容发送给服务端,返回该key是否有效
+    verify_token: str  #: 用于验证, 用户将GrandToken中除 encrypy_key 之外内容发送给服务端,返回该key是否有效
     user_id: str  #: 用户id
     encrypt_key: str  #: 客户端jwt编码所用密钥
 
