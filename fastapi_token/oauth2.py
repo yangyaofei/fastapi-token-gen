@@ -269,7 +269,7 @@ class EncryptToken(TokenBase):
         grand_token = GrantToken(
             jwt_algorithm=self.algorithm_jwt,
             user_id=user_id,
-            varify_token=self.gen_key(secret_key=self.secret_key_grand, salt=key.hex()).hex(),
+            verify_token=self.gen_key(secret_key=self.secret_key_grand, salt=key.hex()).hex(),
             encrypt_key=encrypt(self.secret_str, key=key, nonce=nonce).hex(),
             **access_field.dict(),
         )
