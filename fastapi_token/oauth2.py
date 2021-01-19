@@ -291,5 +291,4 @@ class EncryptToken(TokenBase):
             encrypt_auth.dict(),
             key=grand_token.encrypt_key,
             algorithm=grand_token.jwt_algorithm,
-
-        )
+        ).decode("utf-8")
