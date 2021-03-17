@@ -281,6 +281,9 @@ class EncryptToken(TokenBase):
         这里 user_token 为生成认证的jwt代码
         根据 user_token 生成最终的认证access_token
 
+        :param user_id
+        :param user_token
+        :param config
         :return: 认证内容以及jwt加密后内容
         """
         grand_token = GrantToken(**jwt.decode(user_token, verify=False))
