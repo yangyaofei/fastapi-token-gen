@@ -136,7 +136,7 @@ class HashToken(TokenBase):
         code = user_token + str(timestamp)
         code = hashlib.md5(code.encode("utf-8")).hexdigest()
         hash_auth = HashAuth(user_id=user_id, timestamp=timestamp, code=code)
-        return hash_auth, jwt.encode(hash_auth.dict(), self.secret_key, self.algorithm)
+        return hash_auth, jwt.encode(hash_auth.dict(), self.secret_key, self.algorithm).decode("utf-8")
 
     def auth(self, authorization: str) -> HashAuth:
         """
