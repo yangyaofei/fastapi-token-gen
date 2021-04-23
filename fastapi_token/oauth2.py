@@ -97,7 +97,7 @@ class OAuth2(OAuth2PasswordBearer):
         except TokenExpireError:
             raise HTTPException(
                 status_code=HTTP_401_UNAUTHORIZED,
-                detail="Not authenticated, auth fail token exprie",
+                detail="Not authenticated, auth fail token expire",
             )
 
 
