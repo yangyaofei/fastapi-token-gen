@@ -8,10 +8,10 @@ import fastapi_token
 dependencies = [
     "cryptography==3.3.1",
     "PyJWT==1.7.1",
-    "fastapi==0.63.0",
+    "fastapi>=0.63.0",
     "starlette==0.13.6",
-    "pydantic==1.7.3",
-    "typing==3.7.4.3"
+    "pydantic>=1.8.1",
+    "typing>=3.7.4.3"
 ]
 setup(
     name='fastapi-token-gen',
