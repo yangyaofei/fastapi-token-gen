@@ -49,3 +49,16 @@ class EncryptAuth(Auth, AccessField):
     :class:`fastapi_gen.oauth2.EncryptToken` 所用认证字段
     """
     pass
+
+
+class EncryptTokenConfig(BaseModel):
+    secret_key: str
+    algorithm_jwt: str
+    salt_jwt: str
+    salt_grand: str
+    access_token_expire_second: int
+
+
+class Config(BaseModel):
+    token_config: EncryptTokenConfig
+    allowed_acl: List[str]

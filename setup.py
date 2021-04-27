@@ -11,7 +11,8 @@ dependencies = [
     "fastapi>=0.63.0",
     "starlette==0.13.6",
     "pydantic>=1.8.1",
-    "typing>=3.7.4.3"
+    "typing>=3.7.4.3",
+    "cidrize>=2.0.0"
 ]
 setup(
     name='fastapi-token-gen',

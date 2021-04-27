@@ -1,32 +1,48 @@
-from fastapi.requests import Request
-from fastapi.exceptions import HTTPException
-from fastapi.security import OAuth2PasswordRequestForm
-from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
-from fastapi.security import OAuth2PasswordBearer
-import jwt
-import base64
 import hashlib
-from fastapi_token.schemas import EncryptAuth, GrantToken, Auth, HashAuth, AccessField
-from fastapi_token.encrypt import gen_key, gen_nonce_from_timestamp, encrypt, decrypt
+import math
 import time
 import typing
-import math
-import json
+
+import jwt
+from fastapi.exceptions import HTTPException
+from fastapi.requests import Request
+from fastapi.security import OAuth2PasswordBearer
+from fastapi_token.encrypt import gen_key, gen_nonce_from_timestamp, encrypt
+from fastapi_token.schemas import EncryptAuth, GrantToken, Auth, HashAuth, AccessField
+from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
 
 
-class TimeExpireError(Exception):
+class TimeExpireError(HTTPException):
     """ 当前的token过期"""
-    pass
+
+    def __init__(self, msg):
+        super(TimeExpireError, self).__init__(
+            status_code=HTTP_401_UNAUTHORIZED,
+            detail=f"Not authenticated, auth fail timestamp not allowed"
+                   f", Error msg : {msg}",
+        )
 
 
-class VerifyError(Exception):
+class VerifyError(HTTPException):
     """ 验证不通过 """
-    pass
+
+    def __init__(self, msg):
+        super(VerifyError, self).__init__(
+            status_code=HTTP_401_UNAUTHORIZED,
+            detail=f"Not authenticated, auth fail signature not correct"
+                   f", Error msg : {msg}",
+        )
 
 
-class TokenExpireError(Exception):
+class TokenExpireError(HTTPException):
     """ user_token过期 """
-    pass
+
+    def __init__(self, msg):
+        super(TokenExpireError, self).__init__(
+            status_code=HTTP_401_UNAUTHORIZED,
+            detail=f"Not authenticated, auth fail token expire"
+                   f", Error msg : {msg}",
+        )
 
 
 class TokenBase:
@@ -46,6 +62,7 @@ class TokenBase:
     4. 服务端获取 jwt编码的token后, 利用函数 :func:`auth` 对token进行认证
 
     """
+
     def gen_user_token(self, user_id: str, **config) -> str:
         """
         生成用户的token, 用于生成最终认证token
@@ -82,23 +99,7 @@ class OAuth2(OAuth2PasswordBearer):
             raise HTTPException(
                 status_code=HTTP_403_FORBIDDEN, detail="Not authenticated"
             )
-        try:
-            return self.token_instance.auth(authorization)
-        except TimeExpireError:
-            raise HTTPException(
-                status_code=HTTP_401_UNAUTHORIZED,
-                detail="Not authenticated, auth fail timestamp not allowed",
-            )
-        except VerifyError:
-            raise HTTPException(
-                status_code=HTTP_401_UNAUTHORIZED,
-                detail="Not authenticated, auth fail signature not correct",
-            )
-        except TokenExpireError:
-            raise HTTPException(
-                status_code=HTTP_401_UNAUTHORIZED,
-                detail="Not authenticated, auth fail token expire",
-            )
+        return self.token_instance.auth(authorization)
 
 
 class HashToken(TokenBase):
@@ -109,6 +110,7 @@ class HashToken(TokenBase):
     2. access_token 生成 利用 ``user_token`` + 当前时间戳方式 hash生成
 
     """
+
     def __init__(self, secret_key: str, algorithm: str, auth_client: str, access_token_expire_second: int):
         self.secret_key = secret_key
         self.algorithm = algorithm
@@ -162,17 +164,22 @@ class HashToken(TokenBase):
         :exception HTTPException: Get 403 or 401
         """
         payload = HashAuth(**jwt.decode(authorization, self.secret_key, algorithms=[self.algorithm]))
+        current_timestamp = time.time()
 
         if math.fabs(
-                payload.timestamp - time.time() + self.access_token_expire_second / 2) > self.access_token_expire_second:
-            raise TimeExpireError()
+                payload.timestamp - current_timestamp + self.access_token_expire_second / 2) > self.access_token_expire_second:
+            raise TimeExpireError(
+                f"current time is: {current_timestamp}, token time is : {payload.timestamp}, "
+                f"access token expire second is : {self.access_token_expire_second}"
+            )
+
         hash_auth, _ = self.gen_auth_token(
             timestamp=payload.timestamp,
             user_token=self.gen_user_token(user_id=payload.user_id),
             user_id=payload.user_id
         )
         if hash_auth.code != payload.code:
-            raise VerifyError()
+            raise VerifyError(f"This token is invalid, use a valid token")
         return payload
 
 
@@ -241,14 +248,30 @@ class EncryptToken(TokenBase):
         try:
             payload = EncryptAuth(
                 **jwt.decode(authorization, verify=True, key=encrypt_key, algorithms=[self.algorithm_jwt]))
-        except jwt.exceptions.InvalidSignatureError:
-            raise VerifyError()
+        except jwt.InvalidSignatureError:
+            raise VerifyError(f"This token is invalid, use a valid token")
+        current_timestamp = time.time()
         if math.fabs(
-                payload.timestamp - time.time() + self.access_token_expire_second / 2) > self.access_token_expire_second:
-            raise TimeExpireError()
-        if payload.token_expire < time.time():
-            raise TokenExpireError()
+                payload.timestamp - current_timestamp + self.access_token_expire_second / 2) > self.access_token_expire_second:
+            raise TimeExpireError(
+                f"current time is: {current_timestamp}, token time is : {payload.timestamp}, "
+                f"access token expire second is : {self.access_token_expire_second}")
+        if payload.token_expire < current_timestamp:
+            raise TokenExpireError(f"user token is expired. current time is : {current_timestamp}, "
+                                   f"user token expired time is : {payload.token_expire}")
         return payload
+
+    def check_user_token(self, user_token: str):
+        try:
+            grant_token = GrantToken(
+                **jwt.decode(user_token, verify=True, key=self.secret_key_jwt, algorithms=[self.algorithm_jwt])
+            )
+            return grant_token
+        except jwt.InvalidSignatureError:
+            raise VerifyError(f"User token verify fail, this token may not the key in this system,"
+                              f"Info in this token is : {jwt.decode(user_token, verify=False)}")
+        except jwt.DecodeError:
+            raise VerifyError(f"This string is not a valid JWT token")
 
     def gen_user_token(self, user_id: str, access_field: typing.Optional[AccessField] = None, **config) -> str:
         """
@@ -260,7 +283,10 @@ class EncryptToken(TokenBase):
         """
         if not access_field:
             access_field = AccessField(
-                token_expire=int(time.time()) + self.access_token_expire_second,
+                token_expire=config.get(
+                    "expire_timestamp",
+                    (int(time.time()) + self.access_token_expire_second)
+                ),
                 allow_method=["*"]
             )
         key = self.gen_key(secret_key=self.secret_key_grand, salt=access_field.gen_salt())
@@ -273,7 +299,7 @@ class EncryptToken(TokenBase):
             encrypt_key=encrypt(self.secret_str, key=key, nonce=nonce).hex(),
             **access_field.dict(),
         )
-        return jwt.encode(grand_token.dict(), self.secret_key_jwt, self.algorithm_jwt)
+        return jwt.encode(grand_token.dict(), self.secret_key_jwt, self.algorithm_jwt).decode("utf-8")
 
     @staticmethod
     def gen_auth_token(user_id: str, user_token: str, **config) -> typing.Tuple[EncryptAuth, str]:
