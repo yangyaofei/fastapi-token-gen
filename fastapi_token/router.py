@@ -20,7 +20,6 @@ class TokenRouter:
             dependencies=[Depends(ACL(self.config.allowed_acl))]
         )
         def show_user_token(user_token: str, request: Request) -> GrantToken:
-            logger.logger.error(request.client.host)
             return EncryptToken(**self.config.token_config.dict()).check_user_token(user_token)
 
         @self.router.get(
