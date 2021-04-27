@@ -1,6 +1,5 @@
 from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
 from cryptography.hazmat.primitives.hashes import SHA256, Hash
-import os
 
 
 def encrypt(payload: bytes, key: bytes, nonce: bytes) -> bytes:

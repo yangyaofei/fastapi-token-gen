@@ -1,7 +1,7 @@
 import time
 import typing
 
-from fastapi import APIRouter, logger, Body, Request, Depends
+from fastapi import APIRouter, Body, Request, Depends
 
 from fastapi_token.acl import ACL
 from fastapi_token.oauth2 import EncryptToken, GrantToken, EncryptAuth, AccessField
