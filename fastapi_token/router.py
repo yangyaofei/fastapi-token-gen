@@ -2,6 +2,7 @@ import time
 import typing
 
 from fastapi import APIRouter, Body, Request, Depends
+from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
 
 from fastapi_token.acl import ACL
 from fastapi_token.oauth2 import EncryptToken, GrantToken, EncryptAuth, AccessField
@@ -9,9 +10,13 @@ from fastapi_token.schemas import Config
 
 
 class TokenRouter:
+    responses = {
+        HTTP_401_UNAUTHORIZED: {"description": "Unauthorized"},
+        HTTP_403_FORBIDDEN: {"description": "No Authorization"}
+    }
 
     def __init__(self, config: Config):
-        self.router = APIRouter()
+        self.router = APIRouter(responses=self.responses)
         self.config: Config = config
 
         @self.router.get(
