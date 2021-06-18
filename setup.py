@@ -6,11 +6,10 @@ import fastapi_token
 # with open("README.md", encoding="utf-8") as f:
 #     readme = f.read()
 dependencies = [
-    "cryptography==3.3.1",
-    "PyJWT==1.7.1",
-    "fastapi>=0.63.0",
-    "starlette==0.13.6",
-    "pydantic>=1.8.1",
+    "cryptography==3.4.7",
+    "PyJWT==2.1.0",
+    "fastapi>=0.65.2",
+    "pydantic>=1.8.2",
     "typing>=3.7.4.3",
     "cidrize>=2.0.0"
 ]
