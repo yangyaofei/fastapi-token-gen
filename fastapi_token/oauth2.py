@@ -241,14 +241,14 @@ class EncryptToken(TokenBase):
         )
 
     def auth(self, authorization: str) -> EncryptAuth:
-        payload = EncryptAuth(**jwt.decode(authorization, verify=False))
+        payload = EncryptAuth(**jwt.decode(authorization, options={'verify_signature': False}))
         access_field = AccessField(**payload.dict())
         key = self.gen_key(secret_key=self.secret_key_grand, salt=access_field.gen_salt())
         nonce = gen_nonce_from_timestamp(access_field.token_expire)
         encrypt_key = encrypt(self.secret_str, key=key, nonce=nonce).hex()
         try:
             payload = EncryptAuth(
-                **jwt.decode(authorization, verify=True, key=encrypt_key, algorithms=[self.algorithm_jwt]))
+                **jwt.decode(authorization, key=encrypt_key, algorithms=[self.algorithm_jwt]))
         except jwt.InvalidSignatureError:
             raise VerifyError(f"This token is invalid, use a valid token")
         current_timestamp = time.time()
@@ -265,12 +265,12 @@ class EncryptToken(TokenBase):
     def check_user_token(self, user_token: str):
         try:
             grant_token = GrantToken(
-                **jwt.decode(user_token, verify=True, key=self.secret_key_jwt, algorithms=[self.algorithm_jwt])
+                **jwt.decode(user_token, key=self.secret_key_jwt, algorithms=[self.algorithm_jwt])
             )
             return grant_token
         except jwt.InvalidSignatureError:
             raise VerifyError(f"User token verify fail, this token may not the key in this system,"
-                              f"Info in this token is : {jwt.decode(user_token, verify=False)}")
+                              f"Info in this token is : {jwt.decode(user_token, options={'verify_signature': False})}")
         except jwt.DecodeError:
             raise VerifyError(f"This string is not a valid JWT token")
 
@@ -300,7 +300,7 @@ class EncryptToken(TokenBase):
             encrypt_key=encrypt(self.secret_str, key=key, nonce=nonce).hex(),
             **access_field.dict(),
         )
-        return jwt.encode(grand_token.dict(), self.secret_key_jwt, self.algorithm_jwt).decode("utf-8")
+        return jwt.encode(grand_token.dict(), self.secret_key_jwt, self.algorithm_jwt)
 
     @staticmethod
     def gen_auth_token(user_id: str, user_token: str, **config) -> typing.Tuple[EncryptAuth, str]:
@@ -313,7 +313,7 @@ class EncryptToken(TokenBase):
         :param config
         :return: 认证内容以及jwt加密后内容
         """
-        grand_token = GrantToken(**jwt.decode(user_token, verify=False))
+        grand_token = GrantToken(**jwt.decode(user_token, options={"verify_signature": False}))
         access_field = AccessField(**grand_token.dict())
         timestamp = config.get("timestamp", int(time.time()))
         encrypt_auth = EncryptAuth(user_id=user_id, timestamp=timestamp, **access_field.dict())
@@ -321,4 +321,4 @@ class EncryptToken(TokenBase):
             encrypt_auth.dict(),
             key=grand_token.encrypt_key,
             algorithm=grand_token.jwt_algorithm,
-        ).decode("utf-8")
+        )
