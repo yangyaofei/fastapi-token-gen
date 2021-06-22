@@ -4,6 +4,7 @@ import time
 import typing
 
 import jwt
+import pydantic
 from fastapi.exceptions import HTTPException
 from fastapi.requests import Request
 from fastapi.security import OAuth2PasswordBearer
@@ -241,7 +242,12 @@ class EncryptToken(TokenBase):
         )
 
     def auth(self, authorization: str) -> EncryptAuth:
-        payload = EncryptAuth(**jwt.decode(authorization, options={'verify_signature': False}))
+        try:
+            payload = EncryptAuth(**jwt.decode(authorization, options={'verify_signature': False}))
+        except pydantic.ValidationError as e:
+            raise VerifyError(f"JWT token missing filed, mes: {e.errors()}")
+        except jwt.DecodeError:
+            raise VerifyError(f"This string is not a valid JWT token")
         access_field = AccessField(**payload.dict())
         key = self.gen_key(secret_key=self.secret_key_grand, salt=access_field.gen_salt())
         nonce = gen_nonce_from_timestamp(access_field.token_expire)

@@ -1,7 +1,7 @@
 import time
 import typing
 
-from fastapi import APIRouter, Body, Request, Depends
+from fastapi import APIRouter, Body, Depends
 from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
 
 from fastapi_token.acl import ACL
@@ -24,7 +24,7 @@ class TokenRouter:
             response_model=GrantToken,
             dependencies=[Depends(ACL(self.config.allowed_acl))]
         )
-        def show_user_token(user_token: str, request: Request) -> GrantToken:
+        def show_user_token(user_token: str) -> GrantToken:
             return EncryptToken(**self.config.token_config.dict()).check_user_token(user_token)
 
         @self.router.get(
