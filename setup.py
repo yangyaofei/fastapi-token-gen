@@ -1,18 +1,14 @@
 #!/usr/bin/env python3
 # coding : utf-8
+import os
+
 from setuptools import setup, find_packages
+
 import fastapi_token
 
-# with open("README.md", encoding="utf-8") as f:
-#     readme = f.read()
-dependencies = [
-    "cryptography==3.4.7",
-    "PyJWT==2.1.0",
-    "fastapi>=0.65.2",
-    "pydantic>=1.8.2",
-    "typing>=3.7.4.3",
-    "cidrize>=2.0.0"
-]
+dependencies = os.path.join(os.path.abspath(os.path.dirname(__file__)), "requirements.txt")
+with open(dependencies, "r") as f:
+    dependencies = f.read().split("\n")
 setup(
     name='fastapi-token-gen',
     version=fastapi_token.__version__,
@@ -21,7 +17,7 @@ setup(
     license='MIT',
     author='yangyaofei',
     author_email='yangyaofei@gmail.com',
-    description='Gen token from client',
+    description='Gen token for FastAPI',
     long_description="",
     long_description_content_type="text/markdown",
     python_requires='>=3.6',
