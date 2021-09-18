@@ -20,7 +20,7 @@ setup(
     description='Gen token for FastAPI',
     long_description="",
     long_description_content_type="text/markdown",
-    python_requires='>=3.6',
+    python_requires='>=3.7',
     install_requires=dependencies,
     include_package_data=True,
     test_suite='tests',
