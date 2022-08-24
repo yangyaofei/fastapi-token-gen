@@ -328,3 +328,16 @@ class EncryptToken(TokenBase):
             key=grand_token.encrypt_key,
             algorithm=grand_token.jwt_algorithm,
         )
+
+
+class EncryptPlainToken(EncryptToken):
+    def auth(self, authorization: str) -> GrantToken:
+        try:
+            grant_token: GrantToken = self.check_user_token(authorization)
+        except pydantic.ValidationError as e:
+            raise VerifyError(f"JWT token missing filed, mes: {e.errors()}")
+        current_timestamp = time.time()
+        if grant_token.token_expire < current_timestamp:
+            raise TokenExpireError(f"user token is expired. current time is : {current_timestamp}, "
+                                   f"user token expired time is : {grant_token.token_expire}")
+        return grant_token
