@@ -17,7 +17,15 @@ class AccessField(BaseModel):
         return (str(self.token_expire) + method).lower()
 
 
-class GrantToken(AccessField):
+class Auth(BaseModel):
+    """
+    认证token生成所用基类
+    """
+    #: 用户名
+    user_id: str
+
+
+class GrantToken(AccessField, Auth):
     """
     user_token 生成所用的字段
     """
@@ -27,29 +35,13 @@ class GrantToken(AccessField):
     encrypt_key: str  #: 客户端jwt编码所用密钥
 
 
-class Auth(BaseModel):
-    """
-    认证token生成所用基类
-    """
-    #: 用户名
-    user_id: str
-    #: 当前Unix时间戳,单位是秒,不是毫秒
-    timestamp: int
-
-
-class HashAuth(Auth):
-    """
-    :class:`fastapi_gen.oauth2.HashToken` 所用认证字段
-    """
-    code: str
-
-
 class EncryptAuth(Auth, AccessField):
     # token: str  #: encrypt(jwt(GrantToken), GrantToken.encrypt_key, sha256(Auth.timestamp)[:12])
     """
     :class:`fastapi_gen.oauth2.EncryptToken` 所用认证字段
     """
-    pass
+    #: 当前Unix时间戳,单位是秒,不是毫秒
+    timestamp: int
 
 
 class EncryptTokenConfig(BaseModel):
