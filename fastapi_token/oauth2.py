@@ -11,7 +11,7 @@ from fastapi.security import OAuth2PasswordBearer
 from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
 
 from fastapi_token.encrypt import gen_key, gen_nonce_from_timestamp, encrypt
-from fastapi_token.schemas import EncryptAuth, GrantToken, Auth, HashAuth, AccessField
+from fastapi_token.schemas import EncryptAuth, GrantToken, Auth, AccessField
 
 
 class TimeExpireError(HTTPException):
@@ -150,7 +150,8 @@ class EncryptToken(TokenBase):
         self.access_token_expire_second = access_token_expire_second
         self.secret_str = "衬衫的价格是九磅十五便士".encode("utf-8")
 
-    def gen_key(self, salt: str = "", secret_key="") -> bytes:
+    @staticmethod
+    def gen_key(salt: str = "", secret_key="") -> bytes:
         """
         生成用于对称加密的密钥,从 secret_key 生成
 
@@ -178,7 +179,8 @@ class EncryptToken(TokenBase):
             raise VerifyError(f"This token is invalid, use a valid token")
         current_timestamp = time.time()
         if math.fabs(
-                payload.timestamp - current_timestamp + self.access_token_expire_second / 2) > self.access_token_expire_second:
+                payload.timestamp - current_timestamp + self.access_token_expire_second / 2
+        ) > self.access_token_expire_second:
             raise TimeExpireError(
                 f"current time is: {current_timestamp}, token time is : {payload.timestamp}, "
                 f"access token expire second is : {self.access_token_expire_second}")

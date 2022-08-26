@@ -1,6 +1,7 @@
 from typing import List
 
-from cidrize import cidrize, IPNetwork
+from cidrize import cidrize
+from netaddr import IPNetwork
 from fastapi import Request
 from fastapi.exceptions import HTTPException
 from fastapi.logger import logger
